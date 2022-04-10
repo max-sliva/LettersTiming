@@ -22,11 +22,19 @@ fun createGUI() {
     val fioField = JTextField(30)
     fioField.setMaximumSize(Dimension(600, fioField.getMinimumSize().height))
     val newUserButton = JButton("New user")
+    val group = ButtonGroup()
+    val radioBut1 = JRadioButton("Typed")
+    val radioBut2 = JRadioButton("Press / Release")
+    radioBut2.isSelected = true
+    group.add(radioBut1)
+    group.add(radioBut2)
     fioBox.add(fioLabel)
     fioBox.add(fioField)
     userBox.add(fioBox)
     userBox.add(Box.createHorizontalGlue())
     userBox.add(newUserButton)
+    userBox.add(radioBut1)
+    userBox.add(radioBut2)
     northBox.add(userBox)
 
     val lettersBox = Box(BoxLayout.X_AXIS)  //коробка с буквами
@@ -40,6 +48,7 @@ fun createGUI() {
     var symbol: Char
     var firstKey = true
     val textArea = JTextArea()
+    var curString = ""
     genButton.addActionListener {
         firstKey = true
         lettersCSV = """"""
@@ -58,6 +67,7 @@ fun createGUI() {
         textField.text = textString
         lettersCSV = textString + ";\n"
         textArea.requestFocus()
+        curString = ""
     }
 
     lettersBox.border = BorderFactory.createLineBorder(Color.BLUE, 5)
@@ -69,41 +79,59 @@ fun createGUI() {
 
     textArea.border = BorderFactory.createLineBorder(Color.GRAY, 5)
     var startTime: Long = 0
-    var curString = ""
+    var pressTime: Long = 0
+    var releaseTime: Long = 0
     textArea.addKeyListener(object : KeyAdapter() {
         override fun keyTyped(e: KeyEvent?) {
             super.keyTyped(e)
-//            if (firstKey && e?.keyChar == textField.text[0])
-            if (firstKey) {  //если первый символ
-                if (e?.keyChar == textField.text[0]) { //и он правильный
-                    firstKey = false
-                    println("timer started")
-                    curString = ""
+            if (radioBut1.isSelected) { //если выбран первый режим
+                if (firstKey) {  //если первый символ
+                    if (e?.keyChar == textField.text[0]) { //и он правильный
+                        firstKey = false
+                        println("timer started")
+                        curString = ""
+                        curString += e?.keyChar
+                        lettersCSV += e?.keyChar + ";\n"
+                        startTime = System.currentTimeMillis()
+                    } else { //если первый символ не правильный
+                        // val text = textArea.text
+                        SwingUtilities.invokeLater(Runnable() {  //то не печатаем его
+                            run() {
+                                textArea.text = ""
+                            }
+                        })
+                    }
+                } else {  //для остальных символов
+                    val curTime = System.currentTimeMillis()
+                    val timeForLetter = curTime - startTime
+                    println("time for ${e?.keyChar} = ${timeForLetter}")
+                    startTime = curTime
+                    lettersCSV += e!!.keyChar + ";$timeForLetter\n"
                     curString += e?.keyChar
-                    lettersCSV += e?.keyChar + ";\n"
-                    startTime = System.currentTimeMillis()
-
-                } else { //если первый символ не правильный
-//                        val text = textArea.text
-                    SwingUtilities.invokeLater(Runnable() {  //то не печатаем его
-                        run() {
-                            textArea.text = ""
-                        }
-                    })
                 }
-            } else {  //для остальных символов
-                val curTime = System.currentTimeMillis()
-                val timeForLetter = curTime - startTime
-                println("time for ${e?.keyChar} = ${timeForLetter}")
-                startTime = curTime
-                lettersCSV += e!!.keyChar + ";$timeForLetter\n"
+                if (curString.equals(textField.text)) {
+                    lettersCSV += ";\n"
+                    println("lettersCSV = $lettersCSV")
+                    File("my1.csv").appendText(lettersCSV)
+                }
+            }
+        }
+
+        override fun keyPressed(e: KeyEvent?) {
+            super.keyPressed(e)
+            if (radioBut2.isSelected){
+                pressTime = System.currentTimeMillis()
+            }
+        }
+
+        override fun keyReleased(e: KeyEvent?) {
+            super.keyReleased(e)
+            if (radioBut2.isSelected){
+                releaseTime = System.currentTimeMillis()
                 curString += e?.keyChar
+                lettersCSV += e!!.keyChar + ";\n"
             }
-            if (curString.equals(textField.text)) {
-                lettersCSV +=";\n"
-                println("lettersCSV = $lettersCSV")
-                File("my1.csv").appendText(lettersCSV)
-            }
+
         }
     })
 
