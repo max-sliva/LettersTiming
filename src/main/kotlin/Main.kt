@@ -50,10 +50,18 @@ fun createGUI() {
             element.isEnabled = !checkBoth.isSelected
         }
     }
+    val textArea = JTextArea()
+    var firstKey = true  //признак нажатия первого символа
 
     val lettersBox = Box(BoxLayout.X_AXIS)  //коробка с буквами
     val textField = JTextField(50)
     textField.font = Font("Tahoma", Font.PLAIN, 16)
+    textField.addKeyListener(object : KeyAdapter() {
+        override fun keyTyped(e: KeyEvent?) {
+            textArea.isEnabled = true
+            firstKey = true
+        }
+    })
 
     val sizeLabel = JLabel("text size: ")
     val stringLength = JTextField(5)
@@ -62,8 +70,6 @@ fun createGUI() {
     var lettersCSV = """"""  //строка для записи в csv файл
     val stopSymbols = """|~[]{}';:\|/?`="""  //символы, которые исключаются из генерации
     var symbol: Char
-    var firstKey = true  //признак нажатия первого символа
-    val textArea = JTextArea()
     textArea.font = Font("Tahoma", Font.PLAIN, 16)
     textArea.isEnabled = false
     var curString = ""
@@ -196,8 +202,8 @@ fun createGUI() {
     mainWindow.size = Dimension(800, 600)
     mainWindow.setLocationRelativeTo(null)
     mainWindow.isVisible = true
-    val currentLocale = Locale.getDefault()
-    println("displayLanguage = " + currentLocale.displayLanguage)
-    println("currentLocale.language = " + currentLocale.language)
+//    val currentLocale = Locale.getDefault()
+//    println("displayLanguage = " + currentLocale.displayLanguage)
+//    println("currentLocale.language = " + currentLocale.language)
 //    println("lang = "+System.getProperty("user.language"))
 }
