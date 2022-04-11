@@ -1,11 +1,14 @@
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
+import java.awt.Font
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.io.File
+import java.util.*
 import javax.swing.*
 import kotlin.random.Random
+
 
 fun main(args: Array<String>) {
     println("Hello World!")
@@ -20,14 +23,16 @@ fun createGUI() {
     val fioBox = Box(BoxLayout.Y_AXIS)
     val fioLabel = JLabel("FIO")
     val fioField = JTextField(30)
+    fioField.text = "testUser"
     fioField.setMaximumSize(Dimension(600, fioField.getMinimumSize().height))
     val newUserButton = JButton("New user")
-    val group = ButtonGroup()
-    val radioBut1 = JRadioButton("Typed")
-    val radioBut2 = JRadioButton("Press / Release")
-    radioBut2.isSelected = true
+    val group = ButtonGroup()  //группа для радиокнопок
+    val radioBut1 = JRadioButton("Typed")  //режим замера времени только между нажатиями клавиш
+    val radioBut2 = JRadioButton("Press / Release")  //режим замера сколько была нажата клавиша
+    radioBut2.isSelected = true //по умолчанию второй режим
     group.add(radioBut1)
     group.add(radioBut2)
+    val checkBoth = JCheckBox("Both")  //замер в обоих режимах
     fioBox.add(fioLabel)
     fioBox.add(fioField)
     userBox.add(fioBox)
@@ -35,26 +40,44 @@ fun createGUI() {
     userBox.add(newUserButton)
     userBox.add(radioBut1)
     userBox.add(radioBut2)
+    userBox.add(checkBoth)
     northBox.add(userBox)
+    checkBoth.isSelected = true // по умолчанию вкл замер в обоих режимах
+    for (element in group.elements) {  //делаем неактивными радиокнопки
+        element.isEnabled = !checkBoth.isSelected
+    }
+    checkBoth.addActionListener {           //переключаем активность радиокнопок в зависимости от чекбокса checkBoth
+        for (element in group.elements) {
+           element.isEnabled = !checkBoth.isSelected
+        }
+    }
 
     val lettersBox = Box(BoxLayout.X_AXIS)  //коробка с буквами
     val textField = JTextField(50)
+//    val font = Font.createFont(Font.TRUETYPE_FONT, File(System.getProperty("user.dir") + "/ds_digital/DS-DIGIB.TTF"))
+//    val font = Font(Font.Co)
+//    var newFont: Font = textField.getFont() //объект для изменения шрифта
+    textField.font = Font("Tahoma", Font.PLAIN, 16)
+//    newFont = newFont.deriveFont(20.0f)
+
     val sizeLabel = JLabel("text size: ")
-    val fieldLength = JTextField(5)
-    fieldLength.text = "10"
+    val stringLength = JTextField(5)
+    stringLength.text = "5"
     val genButton = JButton("Generate text")
-    var lettersCSV = """"""
-    val stopSymbols = """|~[]{}';:\|/?`="""
+    var lettersCSV = """"""  //строка для записи в csv файл
+    val stopSymbols = """|~[]{}';:\|/?`="""  //символы, которые исключаются из генерации
     var symbol: Char
-    var firstKey = true
+    var firstKey = true  //признак нажатия первого символа
     val textArea = JTextArea()
+    textArea.font = Font("Tahoma", Font.PLAIN, 16)
+    textArea.isEnabled = false
     var curString = ""
     genButton.addActionListener {
         firstKey = true
         lettersCSV = """"""
         var textString: String
-        var symbols = CharArray(fieldLength.text.toInt())
-        for (i in 0..fieldLength.text.toInt() - 1) {
+        var symbols = CharArray(stringLength.text.toInt())
+        for (i in 0..stringLength.text.toInt() - 1) {
             do {
                 symbol = Random.nextInt(35, 126).toChar()
 //                println(symbol)
@@ -68,12 +91,13 @@ fun createGUI() {
         lettersCSV = textString + ";\n"
         textArea.requestFocus()
         curString = ""
+        textArea.isEnabled = true
     }
 
     lettersBox.border = BorderFactory.createLineBorder(Color.BLUE, 5)
     lettersBox.add(textField)
     lettersBox.add(sizeLabel)
-    lettersBox.add(fieldLength)
+    lettersBox.add(stringLength)
     lettersBox.add(genButton)
     northBox.add(lettersBox)
 
@@ -84,34 +108,37 @@ fun createGUI() {
     textArea.addKeyListener(object : KeyAdapter() {
         override fun keyTyped(e: KeyEvent?) {
             super.keyTyped(e)
-            if (radioBut1.isSelected) { //если выбран первый режим
+            if (radioBut1.isSelected || checkBoth.isSelected) { //если выбран первый режим или оба режима
                 if (firstKey) {  //если первый символ
                     if (e?.keyChar == textField.text[0]) { //и он правильный
                         firstKey = false
                         println("timer started")
                         curString = ""
                         curString += e?.keyChar
-                        lettersCSV += e?.keyChar + ";\n"
+                        lettersCSV = textField.text + ";\n"
+                        lettersCSV += e?.keyChar+";"
+                        if (!checkBoth.isSelected) lettersCSV += "\n" //если выбран режим только Typed
                         startTime = System.currentTimeMillis()
                     } else { //если первый символ не правильный
                         // val text = textArea.text
                         SwingUtilities.invokeLater(Runnable() {  //то не печатаем его
                             run() {
-                                textArea.text = ""
+                                textArea.text = ""  //т.е. делаем область пустой
                             }
                         })
                     }
                 } else {  //для остальных символов
                     val curTime = System.currentTimeMillis()
                     val timeForLetter = curTime - startTime
-                    println("time for ${e?.keyChar} = ${timeForLetter}")
+                    println("time from last char for ${e?.keyChar} = ${timeForLetter}")
                     startTime = curTime
-                    lettersCSV += e!!.keyChar + ";$timeForLetter\n"
+                    lettersCSV += e!!.keyChar + ";$timeForLetter"
+                    if (!checkBoth.isSelected) lettersCSV += "\n" //если выбран режим только Typed
                     curString += e?.keyChar
                 }
-                if (curString.equals(textField.text)) {
-                    lettersCSV += ";\n"
-                    println("lettersCSV = $lettersCSV")
+                if (!checkBoth.isSelected && curString.equals(textField.text)) {  //если выбран режим только Typed
+                    lettersCSV += ";\n"                             //то записываем всё в файл
+                    println("from keyTyped lettersCSV = $lettersCSV")
                     File("my1.csv").appendText(lettersCSV)
                 }
             }
@@ -119,19 +146,42 @@ fun createGUI() {
 
         override fun keyPressed(e: KeyEvent?) {
             super.keyPressed(e)
-            if (radioBut2.isSelected){
-                pressTime = System.currentTimeMillis()
-            }
+            if (e!!.keyChar.code != 65535)  //если не Shift
+                if (radioBut2.isSelected || checkBoth.isSelected){ //и выбран второй режим или оба режима
+                    pressTime = System.currentTimeMillis()
+                }
         }
 
         override fun keyReleased(e: KeyEvent?) {
             super.keyReleased(e)
-            if (radioBut2.isSelected){
-                releaseTime = System.currentTimeMillis()
-                curString += e?.keyChar
-                lettersCSV += e!!.keyChar + ";\n"
-            }
+//            println("e = ${e!!.keyChar.code}")
+            if (e!!.keyChar.code != 65535)  //если не Shift
+                if (radioBut2.isSelected || checkBoth.isSelected){  //и выбран второй режим или оба режима
+                    releaseTime = System.currentTimeMillis()
+                    val timePressRelease = releaseTime - pressTime
+                    println("time for Press/Release for ${e?.keyChar} = ${timePressRelease}")
+                    if (!checkBoth.isSelected) { //если выбран режим только Press / Release
+                        curString += e?.keyChar
+                        lettersCSV += e!!.keyChar
+                    }
+                    lettersCSV += ";$timePressRelease\n"
+                    if (curString.equals(textField.text)) {//если строка введена вся, то записываем всё в файл
+                        lettersCSV += ";\n"
+                        println("lettersCSV = $lettersCSV")
+                        File(fioField.text+".csv").appendText(lettersCSV)
+                        JOptionPane.showMessageDialog(mainWindow, "Data is written!")
+                        textField.text = ""
+                        textArea.text = ""
+//                        val messageWindow = JDialog(mainWindow)
+//                        messageWindow.
+                    }
+                    if (curString.length == textField.text.length && !curString.equals(textField.text)){ //если введенный текст не равен исходному
+                        JOptionPane.showMessageDialog(mainWindow, "Entered text doesn't match generated, repeat it, please.")
+                        textArea.text = ""
+                        firstKey = true
 
+                    }
+                }
         }
     })
 
@@ -140,4 +190,8 @@ fun createGUI() {
     mainWindow.size = Dimension(800, 600)
     mainWindow.setLocationRelativeTo(null)
     mainWindow.isVisible = true
+    val currentLocale = Locale.getDefault()
+    println("displayLanguage = "+currentLocale.displayLanguage)
+    println("currentLocale.language = "+currentLocale.language)
+//    println("lang = "+System.getProperty("user.language"))
 }
