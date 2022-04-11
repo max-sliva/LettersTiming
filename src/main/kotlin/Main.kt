@@ -56,7 +56,7 @@ fun createGUI() {
     val lettersBox = Box(BoxLayout.X_AXIS)  //коробка с буквами
     val textField = JTextField(50)
     textField.font = Font("Tahoma", Font.PLAIN, 16)
-    textField.addKeyListener(object : KeyAdapter() {
+    textField.addKeyListener(object : KeyAdapter() { //для свободного ввода букв
         override fun keyTyped(e: KeyEvent?) {
             textArea.isEnabled = true
             firstKey = true
