@@ -1,10 +1,9 @@
-import java.awt.BorderLayout
-import java.awt.Color
-import java.awt.Dimension
-import java.awt.Font
+import java.awt.*
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
 import javax.swing.*
 import kotlin.random.Random
 
@@ -91,6 +90,31 @@ fun createGUI() {
     nextStringFromFile.isEnabled = false
     val fileLabel = JLabel("no file")
     val selectFileBtn = JButton("Select File")
+    var inputStreamReader: BufferedReader? = null
+    selectFileBtn.addActionListener {
+        val fileDialog = FileDialog(mainWindow)
+        fileDialog.mode = FileDialog.LOAD //диалог в режим открытия
+        fileDialog.title = "Open File with strings" //заголовок диалога открытия
+        fileDialog.setFile("*.txt") //фильтр для файлов
+        fileDialog.isVisible = true //показываем диалог открытия
+//если пользователь выбрал каталог и файл, т.е. они не содержат null
+//это нужно, чтоб обработать отказ от открытия, иначе будет ошибка
+        if (!(fileDialog.directory+fileDialog.file).contains("null")) {
+            val fileName = fileDialog.directory + fileDialog.file //записываем путь к файлу
+            println("fileName=$fileName") //выводим полное имя файла в консоль
+            nextStringFromFile.isEnabled = true
+            fileLabel.text = fileDialog.file
+            inputStreamReader = File(fileName).reader().buffered()
+            inputStreamReader!!.readLine()
+        }
+    }
+    nextStringFromFile.addActionListener {
+        val s = inputStreamReader!!.readLine()
+        println("s = $s")
+        textField.text = s.toString()
+        textArea.isEnabled = true
+        firstKey = true
+    }
 
     fileModeBox.add(nextStringFromFile)
     fileModeBox.add(fileLabel)
@@ -159,11 +183,14 @@ fun createGUI() {
                         lettersCSV += e?.keyChar + ";"
                         if (!checkBoth.isSelected) lettersCSV += "\n" //если выбран режим только Typed
                         startTime = System.currentTimeMillis()
+                        //todo сделать хеш-мап с записями клавиша_startTime - время, клавиша_pressTime - время, и результаты записывать в массив объектов, а потом - в строку для файла,
+                        //чтобы не было мешанины при быстром нажатии клавиш
                     } else { //если первый символ не правильный
                         // val text = textArea.text
                         SwingUtilities.invokeLater(Runnable() {  //то не печатаем его
                             run() {
                                 textArea.text = ""  //т.е. делаем область пустой
+                                println("Wrong letter! ${e?.keyChar} != ${textField.text[0]}  text = ${textField.text}")
                             }
                         })
                     }
