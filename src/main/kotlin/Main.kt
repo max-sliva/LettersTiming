@@ -5,7 +5,6 @@ import java.awt.Font
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.io.File
-import java.util.*
 import javax.swing.*
 import kotlin.random.Random
 
@@ -18,6 +17,7 @@ fun createGUI() {
     val mainWindow = JFrame("LettersTiming")
     mainWindow.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
     val northBox = Box(BoxLayout.Y_AXIS)
+
     val userBox = Box(BoxLayout.X_AXIS)
     val fioBox = Box(BoxLayout.Y_AXIS)
     val fioLabel = JLabel("FIO")
@@ -25,12 +25,12 @@ fun createGUI() {
     fioField.text = "testUser"
     fioField.maximumSize = Dimension(600, fioField.minimumSize.height)
     val newUserButton = JButton("New user")
-    val group = ButtonGroup()  //группа для радиокнопок
+    val keyModeGroup = ButtonGroup()  //группа для радиокнопок
     val radioBut1 = JRadioButton("Typed")  //режим замера времени только между нажатиями клавиш
     val radioBut2 = JRadioButton("Press / Release")  //режим замера сколько была нажата клавиша
     radioBut2.isSelected = true //по умолчанию второй режим
-    group.add(radioBut1)
-    group.add(radioBut2)
+    keyModeGroup.add(radioBut1)
+    keyModeGroup.add(radioBut2)
     val checkBoth = JCheckBox("Both")  //замер в обоих режимах
     fioBox.add(fioLabel)
     fioBox.add(fioField)
@@ -42,17 +42,41 @@ fun createGUI() {
     userBox.add(checkBoth)
     northBox.add(userBox)
     checkBoth.isSelected = true // по умолчанию вкл замер в обоих режимах
-    for (element in group.elements) {  //делаем неактивными радиокнопки
+    for (element in keyModeGroup.elements) {  //делаем неактивными радиокнопки
         element.isEnabled = !checkBoth.isSelected
     }
     checkBoth.addActionListener {           //переключаем активность радиокнопок в зависимости от чекбокса checkBoth
-        for (element in group.elements) {
+        for (element in keyModeGroup.elements) {
             element.isEnabled = !checkBoth.isSelected
         }
     }
+
+    val modeBox = Box(BoxLayout.X_AXIS)
+    modeBox.add(JLabel("Mode: "))
+    val operatingModeGroup = ButtonGroup()
+    val freeMode = JRadioButton("Free Mode")
+    freeMode.isSelected = true
+    operatingModeGroup.add(freeMode)
+    modeBox.add(freeMode)
+    val fromFileMode = JRadioButton("From file")
+    operatingModeGroup.add(fromFileMode)
+    modeBox.add(fromFileMode)
+    val freeModeBox = Box(BoxLayout.X_AXIS)
+    val fileModeBox = Box(BoxLayout.X_AXIS)
+    fileModeBox.isVisible = false
+    fromFileMode.addActionListener {
+        freeModeBox.isVisible = false
+        fileModeBox.isVisible = true
+    }
+    freeMode.addActionListener {
+        freeModeBox.isVisible = true
+        fileModeBox.isVisible = false
+    }
+
+    northBox.add(modeBox)
+
     val textArea = JTextArea()
     var firstKey = true  //признак нажатия первого символа
-
     val lettersBox = Box(BoxLayout.X_AXIS)  //коробка с буквами
     val textField = JTextField(50)
     textField.font = Font("Tahoma", Font.PLAIN, 16)
@@ -63,10 +87,22 @@ fun createGUI() {
         }
     })
 
+    val nextStringFromFile = JButton("Next String")
+    nextStringFromFile.isEnabled = false
+    val fileLabel = JLabel("no file")
+    val selectFileBtn = JButton("Select File")
+
+    fileModeBox.add(nextStringFromFile)
+    fileModeBox.add(fileLabel)
+    fileModeBox.add(selectFileBtn)
+
     val sizeLabel = JLabel("text size: ")
     val stringLength = JTextField(5)
     stringLength.text = "5"
     val genButton = JButton("Generate text")
+    freeModeBox.add(sizeLabel)
+    freeModeBox.add(stringLength)
+    freeModeBox.add(genButton)
     var lettersCSV = """"""  //строка для записи в csv файл
     val stopSymbols = """|~[]{}';:\|/?`="""  //символы, которые исключаются из генерации
     var symbol: Char
@@ -97,9 +133,12 @@ fun createGUI() {
 
     lettersBox.border = BorderFactory.createLineBorder(Color.BLUE, 5)
     lettersBox.add(textField)
-    lettersBox.add(sizeLabel)
-    lettersBox.add(stringLength)
-    lettersBox.add(genButton)
+//    lettersBox.add(sizeLabel)
+//    lettersBox.add(stringLength)
+//    lettersBox.add(genButton)
+    lettersBox.add(freeModeBox)
+    lettersBox.add(fileModeBox)
+
     northBox.add(lettersBox)
 
     textArea.border = BorderFactory.createLineBorder(Color.GRAY, 5)
