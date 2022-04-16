@@ -1,4 +1,6 @@
 import java.awt.*
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.io.BufferedReader
@@ -6,6 +8,7 @@ import java.io.File
 import java.io.InputStreamReader
 import javax.swing.*
 import kotlin.random.Random
+import kotlin.streams.toList
 
 fun main(args: Array<String>) {
     println("Hello World!")
@@ -13,6 +16,7 @@ fun main(args: Array<String>) {
 }
 
 fun createGUI() {
+    var charTimingsArray = arrayListOf<CharTimings>()
     val mainWindow = JFrame("LettersTiming")
     mainWindow.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
     val northBox = Box(BoxLayout.Y_AXIS)
@@ -85,6 +89,12 @@ fun createGUI() {
             firstKey = true
         }
     })
+    textField.addFocusListener(object : FocusAdapter(){ //для инициализации charTimingsArray после свободного ввода строки
+        override fun focusLost(e: FocusEvent?) {
+            super.focusLost(e)
+            charTimingsArray = arrayListOfCharTimings(textField.text)
+        }
+    })
 
     val nextStringFromFile = JButton("Next String")
     nextStringFromFile.isEnabled = false
@@ -114,6 +124,7 @@ fun createGUI() {
         textField.text = s.toString()
         textArea.isEnabled = true
         firstKey = true
+        textField.requestFocus()
     }
 
     fileModeBox.add(nextStringFromFile)
@@ -150,9 +161,10 @@ fun createGUI() {
         println("\ntextString = $textString")
         textField.text = textString
         lettersCSV = textString + ";\n"
-        textArea.requestFocus()
+        textField.requestFocus()
         curString = ""
         textArea.isEnabled = true
+        textArea.requestFocus()
     }
 
     lettersBox.border = BorderFactory.createLineBorder(Color.BLUE, 5)
@@ -164,7 +176,6 @@ fun createGUI() {
     lettersBox.add(fileModeBox)
 
     northBox.add(lettersBox)
-
     textArea.border = BorderFactory.createLineBorder(Color.GRAY, 5)
     var startTime: Long = 0
     var pressTime: Long = 0
@@ -183,7 +194,8 @@ fun createGUI() {
                         lettersCSV += e?.keyChar + ";"
                         if (!checkBoth.isSelected) lettersCSV += "\n" //если выбран режим только Typed
                         startTime = System.currentTimeMillis()
-                        //todo сделать хеш-мап с записями клавиша_startTime - время, клавиша_pressTime - время, и результаты записывать в массив объектов, а потом - в строку для файла,
+                        //todo убрать keyTyped - добавить к keyPressed и keyReleased вычисление прошедшего времени
+                    // после нажатия предыдущей кнопки и результаты записывать в массив объектов, а потом - в строку для файла,
                         //чтобы не было мешанины при быстром нажатии клавиш
                     } else { //если первый символ не правильный
                         // val text = textArea.text
@@ -226,6 +238,7 @@ fun createGUI() {
             super.keyPressed(e)
             if (e!!.keyChar.code != 65535)  //если не Shift
                 if (radioBut2.isSelected || checkBoth.isSelected) { //и выбран второй режим или оба режима
+                    //todo сделать запись в массив таймингов времени нажатия
                     pressTime = System.currentTimeMillis()
                 }
         }
@@ -233,6 +246,8 @@ fun createGUI() {
         override fun keyReleased(e: KeyEvent?) {
             super.keyReleased(e)
 //            println("e = ${e!!.keyChar.code}")
+                //todo сделать запись в массив таймингов времени отпускания и разницы между прошлой клавишей - в завимости
+            //от разницы - от прошлого press или release
             if (e!!.keyChar.code != 65535)  //если не Shift
                 if (radioBut2.isSelected || checkBoth.isSelected) {  //и выбран второй режим или оба режима
                     releaseTime = System.currentTimeMillis()
