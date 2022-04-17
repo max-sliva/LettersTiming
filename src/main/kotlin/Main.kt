@@ -239,6 +239,7 @@ fun createGUI() {
             if (e!!.keyChar.code != 65535)  //если не Shift
                 if (radioBut2.isSelected || checkBoth.isSelected) { //и выбран второй режим или оба режима
                     //todo сделать запись в массив таймингов времени нажатия
+
                     pressTime = System.currentTimeMillis()
                 }
         }
