@@ -274,7 +274,7 @@ fun createGUI() {
 //                        lettersCSV += e!!.keyChar
 //                    }
                    // lettersCSV += ";$timePressRelease\n"
-                    if (curString.equals(textField.text) && e!!.keyChar == textField.text.last()) {//если строка введена вся, то записываем всё в файл
+                    if (textArea.text.equals(textField.text) && e!!.keyChar == textField.text.last()) {//если строка введена вся, то записываем всё в файл
                         println("last char = ${textField.text.last()}")
                         lettersCSV = textField.text + ";\n"
                         var i = 0
