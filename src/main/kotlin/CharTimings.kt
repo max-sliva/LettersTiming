@@ -1,11 +1,11 @@
-data class CharTimings(val letter: Char, val timeTyped: Int = 0, val timePress: Long = 0, val timeRelease: Long = 0)
+data class CharTimings(val letter: Char, var timeTyped: Int = 0, var timePress: Long = 0, var timeRelease: Long = 0)
 
 fun printCharTimingsLetters(arr: ArrayList<CharTimings>){  //печать букв из массива с CharTimings
-    print("array chars = ")
+    println("array chars = Press\t Release")
     arr.forEach {
-        print("${it.letter}")
+        println("\t${it.letter}  ${it.timePress}  ${it.timeRelease}")
     }
-    println()
+   // println()
 }
 
 fun arrayListOfCharTimings(text: String): ArrayList<CharTimings>{ //создание массива с CharTimings

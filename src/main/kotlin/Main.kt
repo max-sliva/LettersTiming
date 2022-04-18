@@ -239,9 +239,15 @@ fun createGUI() {
             if (e!!.keyChar.code != 65535)  //если не Shift
                 if (radioBut2.isSelected || checkBoth.isSelected) { //и выбран второй режим или оба режима
                     //todo сделать запись в массив таймингов времени нажатия
-
                     pressTime = System.currentTimeMillis()
+                    val charTimingTemp = charTimingsArray.find {it.letter == e!!.keyChar && it.timePress == 0L}
+                    charTimingTemp?.timePress = pressTime
+                    if (!checkBoth.isSelected) { //если выбран режим только Press / Release
+                        curString += e?.keyChar
+                       // lettersCSV += e!!.keyChar
+                    }
                 }
+//            printCharTimingsLetters(charTimingsArray)
         }
 
         override fun keyReleased(e: KeyEvent?) {
@@ -252,16 +258,25 @@ fun createGUI() {
             if (e!!.keyChar.code != 65535)  //если не Shift
                 if (radioBut2.isSelected || checkBoth.isSelected) {  //и выбран второй режим или оба режима
                     releaseTime = System.currentTimeMillis()
-                    val timePressRelease = releaseTime - pressTime
-                    println("time for Press/Release for ${e?.keyChar} = ${timePressRelease}")
-                    if (!checkBoth.isSelected) { //если выбран режим только Press / Release
-                        curString += e?.keyChar
-                        lettersCSV += e!!.keyChar
-                    }
-                    lettersCSV += ";$timePressRelease\n"
-                    if (curString.equals(textField.text)) {//если строка введена вся, то записываем всё в файл
+                   // val timePressRelease = releaseTime - pressTime
+                    val charTimingTemp = charTimingsArray.find {it.letter == e!!.keyChar && it.timeRelease == 0L}
+                    charTimingTemp?.timeRelease = releaseTime
+                    printCharTimingsLetters(charTimingsArray)
+//                    println("time for Press/Release for ${e?.keyChar} = ${timePressRelease}")
+//                    if (!checkBoth.isSelected) { //если выбран режим только Press / Release
+//                        curString += e?.keyChar
+//                        lettersCSV += e!!.keyChar
+//                    }
+                   // lettersCSV += ";$timePressRelease\n"
+                    if (curString.equals(textField.text) && e!!.keyChar == textField.text.last()) {//если строка введена вся, то записываем всё в файл
+                        println("last char = ${textField.text.last()}")
+                        lettersCSV = textField.text + ";\n"
+                        charTimingsArray.forEach {
+                            it.timeTyped = (it.timeRelease - it.timePress).toInt()
+                            lettersCSV+=it.letter+";" + it.timeTyped + ";"
+                        }
                         lettersCSV += ";\n"
-                        println("lettersCSV = $lettersCSV")
+//                        println("lettersCSV = $lettersCSV")
                         File(fioField.text + ".csv").appendText(lettersCSV)
                         JOptionPane.showMessageDialog(mainWindow, "Data is written!")
                         textField.text = ""
