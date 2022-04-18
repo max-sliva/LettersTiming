@@ -1,4 +1,4 @@
-data class CharTimings(val letter: Char, var timeTyped: Int = 0, var timePress: Long = 0, var timeRelease: Long = 0)
+data class CharTimings(val letter: Char, var timeTyped: Int = 0, var timePress: Long = 0, var timeRelease: Long = 0, var first: Boolean = false)
 
 fun printCharTimingsLetters(arr: ArrayList<CharTimings>){  //печать букв из массива с CharTimings
     println("array chars = Press\t Release")

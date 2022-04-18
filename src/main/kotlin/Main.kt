@@ -181,58 +181,58 @@ fun createGUI() {
     var pressTime: Long = 0
     var releaseTime: Long = 0
     textArea.addKeyListener(object : KeyAdapter() {
-        override fun keyTyped(e: KeyEvent?) {
-            super.keyTyped(e)
-            if (radioBut1.isSelected || checkBoth.isSelected) { //если выбран первый режим или оба режима
-                if (firstKey) {  //если первый символ
-                    if (e?.keyChar == textField.text[0]) { //и он правильный
-                        firstKey = false
-                        println("timer started")
-                        curString = ""
-                        curString += e?.keyChar
-                        lettersCSV = textField.text + ";\n"
-                        lettersCSV += e?.keyChar + ";"
-                        if (!checkBoth.isSelected) lettersCSV += "\n" //если выбран режим только Typed
-                        startTime = System.currentTimeMillis()
-                        //todo убрать keyTyped - добавить к keyPressed и keyReleased вычисление прошедшего времени
-                    // после нажатия предыдущей кнопки и результаты записывать в массив объектов, а потом - в строку для файла,
-                        //чтобы не было мешанины при быстром нажатии клавиш
-                    } else { //если первый символ не правильный
-                        // val text = textArea.text
-                        SwingUtilities.invokeLater(Runnable() {  //то не печатаем его
-                            run() {
-                                textArea.text = ""  //т.е. делаем область пустой
-                                println("Wrong letter! ${e?.keyChar} != ${textField.text[0]}  text = ${textField.text}")
-                            }
-                        })
-                    }
-                } else {  //для остальных символов
-                    val curTime = System.currentTimeMillis()
-                    val timeForLetter = curTime - startTime
-                    println("time from last char for ${e?.keyChar} = ${timeForLetter}")
-                    startTime = curTime
-                    lettersCSV += e!!.keyChar + ";$timeForLetter"
-                    if (!checkBoth.isSelected) lettersCSV += "\n" //если выбран режим только Typed
-                    curString += e?.keyChar
-                }
-                if (!checkBoth.isSelected && curString.equals(textField.text)) {  //если выбран режим только Typed
-                    lettersCSV += ";\n"                             //то записываем всё в файл
-                    println("from keyTyped lettersCSV = $lettersCSV")
-                    File(fioField.text + ".csv").appendText(lettersCSV)
-                    JOptionPane.showMessageDialog(mainWindow, "Data is written!")
-                    textField.text = ""
-                    textArea.text = ""
-                }
-                if (curString.length == textField.text.length && !curString.equals(textField.text)) { //если введенный текст не равен исходному
-                    JOptionPane.showMessageDialog(
-                        mainWindow,
-                        "Entered text doesn't match generated, repeat it, please."
-                    )
-                    textArea.text = ""
-                    firstKey = true
-                }
-            }
-        }
+//        override fun keyTyped(e: KeyEvent?) {
+//            super.keyTyped(e)
+//            if (radioBut1.isSelected || checkBoth.isSelected) { //если выбран первый режим или оба режима
+//                if (firstKey) {  //если первый символ
+//                    if (e?.keyChar == textField.text[0]) { //и он правильный
+//                        firstKey = false
+//                        println("timer started")
+//                        curString = ""
+//                        curString += e?.keyChar
+//                        lettersCSV = textField.text + ";\n"
+//                        lettersCSV += e?.keyChar + ";"
+//                        if (!checkBoth.isSelected) lettersCSV += "\n" //если выбран режим только Typed
+//                        startTime = System.currentTimeMillis()
+//                        //todo убрать keyTyped - добавить к keyPressed и keyReleased вычисление прошедшего времени
+//                    // после нажатия предыдущей кнопки и результаты записывать в массив объектов, а потом - в строку для файла,
+//                        //чтобы не было мешанины при быстром нажатии клавиш
+//                    } else { //если первый символ не правильный
+//                        // val text = textArea.text
+//                        SwingUtilities.invokeLater(Runnable() {  //то не печатаем его
+//                            run() {
+//                                textArea.text = ""  //т.е. делаем область пустой
+//                                println("Wrong letter! ${e?.keyChar} != ${textField.text[0]}  text = ${textField.text}")
+//                            }
+//                        })
+//                    }
+//                } else {  //для остальных символов
+//                    val curTime = System.currentTimeMillis()
+//                    val timeForLetter = curTime - startTime
+//                    println("time from last char for ${e?.keyChar} = ${timeForLetter}")
+//                    startTime = curTime
+//                    lettersCSV += e!!.keyChar + ";$timeForLetter"
+//                    if (!checkBoth.isSelected) lettersCSV += "\n" //если выбран режим только Typed
+//                    curString += e?.keyChar
+//                }
+//                if (!checkBoth.isSelected && curString.equals(textField.text)) {  //если выбран режим только Typed
+//                    lettersCSV += ";\n"                             //то записываем всё в файл
+//                    println("from keyTyped lettersCSV = $lettersCSV")
+//                    File(fioField.text + ".csv").appendText(lettersCSV)
+//                    JOptionPane.showMessageDialog(mainWindow, "Data is written!")
+//                    textField.text = ""
+//                    textArea.text = ""
+//                }
+//                if (curString.length == textField.text.length && !curString.equals(textField.text)) { //если введенный текст не равен исходному
+//                    JOptionPane.showMessageDialog(
+//                        mainWindow,
+//                        "Entered text doesn't match generated, repeat it, please."
+//                    )
+//                    textArea.text = ""
+//                    firstKey = true
+//                }
+//            }
+//        }
 
         override fun keyPressed(e: KeyEvent?) {
             super.keyPressed(e)
@@ -242,9 +242,15 @@ fun createGUI() {
                     pressTime = System.currentTimeMillis()
                     val charTimingTemp = charTimingsArray.find {it.letter == e!!.keyChar && it.timePress == 0L}
                     charTimingTemp?.timePress = pressTime
-                    if (!checkBoth.isSelected) { //если выбран режим только Press / Release
+//                    if (!checkBoth.isSelected) { //если выбран режим только Press / Release
                         curString += e?.keyChar
                        // lettersCSV += e!!.keyChar
+//                    }
+                    if ( firstKey && e?.keyChar == textField.text[0]) { //если символ первый и он правильный
+                        firstKey = false
+                        println("timer started")
+                       // curString = ""
+                        charTimingTemp?.first = true
                     }
                 }
 //            printCharTimingsLetters(charTimingsArray)
@@ -271,9 +277,17 @@ fun createGUI() {
                     if (curString.equals(textField.text) && e!!.keyChar == textField.text.last()) {//если строка введена вся, то записываем всё в файл
                         println("last char = ${textField.text.last()}")
                         lettersCSV = textField.text + ";\n"
+                        var i = 0
                         charTimingsArray.forEach {
                             it.timeTyped = (it.timeRelease - it.timePress).toInt()
                             lettersCSV+=it.letter+";" + it.timeTyped + ";"
+                            if (it.first) {
+                                lettersCSV+="\n"
+                            } else {
+                                val timeFromPrevious = it.timePress - charTimingsArray.get(i-1).timePress
+                                lettersCSV+= "$timeFromPrevious;\n"
+                            }
+                            i++
                         }
                         lettersCSV += ";\n"
 //                        println("lettersCSV = $lettersCSV")
@@ -281,6 +295,7 @@ fun createGUI() {
                         JOptionPane.showMessageDialog(mainWindow, "Data is written!")
                         textField.text = ""
                         textArea.text = ""
+                        curString = ""
                     }
                     if (curString.length == textField.text.length && !curString.equals(textField.text)) { //если введенный текст не равен исходному
                         JOptionPane.showMessageDialog(
