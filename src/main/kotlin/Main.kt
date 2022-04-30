@@ -89,7 +89,8 @@ fun createGUI() {
             firstKey = true
         }
     })
-    textField.addFocusListener(object : FocusAdapter(){ //для инициализации charTimingsArray после свободного ввода строки
+    textField.addFocusListener(object :
+        FocusAdapter() { //для инициализации charTimingsArray после свободного ввода строки
         override fun focusLost(e: FocusEvent?) {
             super.focusLost(e)
             charTimingsArray = arrayListOfCharTimings(textField.text)
@@ -102,14 +103,17 @@ fun createGUI() {
     val selectFileBtn = JButton("Select File")
     var inputStreamReader: BufferedReader? = null
     selectFileBtn.addActionListener {
+        val dir = System.getProperty("user.dir")
+        println("path = $dir")
         val fileDialog = FileDialog(mainWindow)
         fileDialog.mode = FileDialog.LOAD //диалог в режим открытия
+        fileDialog.directory = dir +"\\"
         fileDialog.title = "Open File with strings" //заголовок диалога открытия
         fileDialog.setFile("*.txt") //фильтр для файлов
         fileDialog.isVisible = true //показываем диалог открытия
 //если пользователь выбрал каталог и файл, т.е. они не содержат null
 //это нужно, чтоб обработать отказ от открытия, иначе будет ошибка
-        if (!(fileDialog.directory+fileDialog.file).contains("null")) {
+        if (!(fileDialog.directory + fileDialog.file).contains("null")) {
             val fileName = fileDialog.directory + fileDialog.file //записываем путь к файлу
             println("fileName=$fileName") //выводим полное имя файла в консоль
             nextStringFromFile.isEnabled = true
@@ -180,6 +184,8 @@ fun createGUI() {
     var startTime: Long = 0
     var pressTime: Long = 0
     var releaseTime: Long = 0
+    val statusLabelText = JLabel("text = ")
+    val statusLabelResult = JLabel("result")
     textArea.addKeyListener(object : KeyAdapter() {
 //        override fun keyTyped(e: KeyEvent?) {
 //            super.keyTyped(e)
@@ -236,56 +242,89 @@ fun createGUI() {
 
         override fun keyPressed(e: KeyEvent?) {
             super.keyPressed(e)
-            if (e!!.keyChar.code != 65535)  //если не Shift
+//            if (e!!.keyChar.code == 8) {
+//                statusLabelResult.text = ""
+//                curString=textArea.text
+//                println("curStr = $curString")
+//            }
+            println("keyChar.code = ${e!!.keyChar.code}")
+            if (e!!.keyChar.code != 65535 && e!!.keyChar.code !=8) { //если не Shift и не backspace
                 if (radioBut2.isSelected || checkBoth.isSelected) { //и выбран второй режим или оба режима
                     //todo сделать запись в массив таймингов времени нажатия
                     pressTime = System.currentTimeMillis()
-                    val charTimingTemp = charTimingsArray.find {it.letter == e!!.keyChar && it.timePress == 0L}
-                    charTimingTemp?.timePress = pressTime
 //                    if (!checkBoth.isSelected) { //если выбран режим только Press / Release
-                        curString += e?.keyChar
-                       // lettersCSV += e!!.keyChar
-//                    }
-                    if ( firstKey && e?.keyChar == textField.text[0]) { //если символ первый и он правильный
-                        firstKey = false
-                        println("timer started")
-                       // curString = ""
-                        charTimingTemp?.first = true
-                    }
+                    curString += e?.keyChar
+//                    curString =
+//                    val charTimingTemp = charTimingsArray.find { it.letter == e!!.keyChar && it.timePress == 0L }
+//                    charTimingTemp?.timePress = pressTime
+                    println("charTimingsArray.size = ${charTimingsArray.size}")
+                    println("curString.length = ${curString.length}")
+                    if (charTimingsArray.size >= curString.length)
+                        if (charTimingsArray.get(curString.length - 1).letter == curString[curString.length - 1]) {
+                            val charTimingTemp = charTimingsArray.get(curString.length - 1)
+                            charTimingTemp?.timePress = pressTime
+                            if (firstKey && e?.keyChar == textField.text[0]) { //если символ первый и он правильный
+                                firstKey = false
+                                println("timer started")
+                                // curString = ""
+                                charTimingTemp?.first = true
+                            }
+                        }
                 }
-//            printCharTimingsLetters(charTimingsArray)
+            }
+            //            printCharTimingsLetters(charTimingsArray)
         }
 
         override fun keyReleased(e: KeyEvent?) {
             super.keyReleased(e)
+            if (e!!.keyChar.code == 8) { //для корректного удаления данных при нажатии BackSpace
+                statusLabelResult.text = ""
+                val charTimingTemp = charTimingsArray.findLast { it.letter == curString.last() && (it.timePress != 0L || it.timeRelease!=0L)}
+                charTimingTemp?.timeRelease = 0
+                charTimingTemp?.timePress = 0
+                curString=textArea.text
+                println("curStr = $curString")
+//                charTimingsArray.get(curString.length).timePress = 0
+//                charTimingsArray.get(curString.length).timeRelease = 0
+            }
 //            println("e = ${e!!.keyChar.code}")
-                //todo сделать запись в массив таймингов времени отпускания и разницы между прошлой клавишей - в завимости
-            //от разницы - от прошлого press или release
             if (e!!.keyChar.code != 65535)  //если не Shift
                 if (radioBut2.isSelected || checkBoth.isSelected) {  //и выбран второй режим или оба режима
                     releaseTime = System.currentTimeMillis()
-                   // val timePressRelease = releaseTime - pressTime
-                    val charTimingTemp = charTimingsArray.find {it.letter == e!!.keyChar && it.timeRelease == 0L}
-                    charTimingTemp?.timeRelease = releaseTime
+                    // val timePressRelease = releaseTime - pressTime
+                    if (charTimingsArray.size >= curString.length) {
+//                        if (charTimingsArray.get(curString.length - 1).letter == curString[curString.length - 1]) {
+//                            val charTimingTemp = charTimingsArray.get(curString.length - 1)
+//                            charTimingTemp?.timeRelease = releaseTime
+//                            if (charTimingTemp != null) {
+//                                statusLabelText.text += charTimingTemp.letter
+//                            }
+//                        }
+                        val charTimingTemp = charTimingsArray.find { it.letter == e!!.keyChar && it.timeRelease == 0L }
+                        charTimingTemp?.timeRelease = releaseTime
+                        if (charTimingTemp != null) {
+                            statusLabelText.text += charTimingTemp.letter
+                        }
+                    }
                     printCharTimingsLetters(charTimingsArray)
 //                    println("time for Press/Release for ${e?.keyChar} = ${timePressRelease}")
 //                    if (!checkBoth.isSelected) { //если выбран режим только Press / Release
 //                        curString += e?.keyChar
 //                        lettersCSV += e!!.keyChar
 //                    }
-                   // lettersCSV += ";$timePressRelease\n"
+                    // lettersCSV += ";$timePressRelease\n"
                     if (textArea.text.equals(textField.text) && e!!.keyChar == textField.text.last()) {//если строка введена вся, то записываем всё в файл
                         println("last char = ${textField.text.last()}")
                         lettersCSV = textField.text + ";\n"
                         var i = 0
                         charTimingsArray.forEach {
                             it.timeTyped = (it.timeRelease - it.timePress).toInt()
-                            lettersCSV+=it.letter+";" + it.timeTyped + ";"
+                            lettersCSV += it.letter + ";" + it.timeTyped + ";"
                             if (it.first) {
-                                lettersCSV+="\n"
+                                lettersCSV += "\n"
                             } else {
-                                val timeFromPrevious = it.timePress - charTimingsArray.get(i-1).timePress
-                                lettersCSV+= "$timeFromPrevious;\n"
+                                val timeFromPrevious = it.timePress - charTimingsArray.get(i - 1).timePress
+                                lettersCSV += "$timeFromPrevious;\n"
                             }
                             i++
                         }
@@ -298,24 +337,28 @@ fun createGUI() {
                         curString = ""
                     }
                     if (curString.length == textField.text.length && !curString.equals(textField.text)) { //если введенный текст не равен исходному
-                        JOptionPane.showMessageDialog(
-                            mainWindow,
-                            "Entered text doesn't match generated, repeat it, please."
-                        )
-                        textArea.text = ""
-                        firstKey = true
+                        statusLabelResult.text = "<html><b><font color='red' size=5>Wrong text!!</font></b></html>"
+//                        JOptionPane.showMessageDialog(
+//                            mainWindow,
+//                            "Entered text doesn't match generated, repeat it, please."
+//                        )
+//                        textArea.text = ""
+//                        firstKey = true
                     }
                 }
         }
     })
 
+    val southBox = Box(BoxLayout.X_AXIS)
+   // southBox.add(statusLabelText)
+  //  southBox.add(Box.createHorizontalGlue())
+//    val dir = System.getProperty("user.dir")
+//    println("path = $dir")
+    southBox.add(statusLabelResult)
     mainWindow.add(northBox, BorderLayout.NORTH)
     mainWindow.add(textArea, BorderLayout.CENTER)
+    mainWindow.add(southBox, BorderLayout.SOUTH)
     mainWindow.size = Dimension(800, 600)
     mainWindow.setLocationRelativeTo(null)
     mainWindow.isVisible = true
-//    val currentLocale = Locale.getDefault()
-//    println("displayLanguage = " + currentLocale.displayLanguage)
-//    println("currentLocale.language = " + currentLocale.language)
-//    println("lang = "+System.getProperty("user.language"))
 }
